@@ -66,7 +66,7 @@ for mobile_number in mobile_numbers:
         mobile_number_input.send_keys(str(mobile_number))
         mobile_number_input.send_keys(Keys.RETURN)
 
-        
+        # Wait for a few seconds before extracting the operator and circle details (to slow down the process)
         time.sleep(3)  # Delay added here to slow down the extraction process
 
         # Wait for operator and circle details to be visible using the provided XPaths
@@ -103,6 +103,8 @@ for mobile_number in mobile_numbers:
 driver.quit()
 
 print("Data scraping completed!")
+
+
 
 
 
