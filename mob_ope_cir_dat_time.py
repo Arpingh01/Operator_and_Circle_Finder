@@ -1,4 +1,3 @@
-# Import libraries
 import os
 import time
 import pandas as pd
@@ -29,21 +28,23 @@ service = Service(driver_path)
 # Initialize the WebDriver
 driver = webdriver.Chrome(service=service, options=options)
 
-# Read mobile numbers from the Client Number column in the CSV file
-df = pd.read_csv('data.csv')
+# Read mobile numbers from the 'mobileNumber1' column in the specified CSV file
+data_file = 'Indiamart 13_cleaned_cleaned.csv'
+df = pd.read_csv(data_file)
 
-# Verify column names and make sure 'Client Number' exists
-print(df.columns)
+# Verify column names and make sure 'mobileNumber1' exists
+if 'mobileNumber1' not in df.columns:
+    raise KeyError("Column 'mobileNumber1' not found in the input CSV file.")
 
-# Extract the first 20 mobile numbers from the 'Client Number' column
-mobile_numbers = df['Client Number'][:20]
+# Extract the mobile numbers from the 'mobileNumber1' column
+mobile_numbers = df['mobileNumber1']
 
 # Path for the output CSV file
-csv_file_path = r'C:\Users\DELL\PycharmProjects\Data_Scrapper_Project\\Operator_and_Circle_Finder\record_data.csv'
+output_file = r'Indiamart_Extracted_Data.csv'
 
 # Create the CSV file and write headers if the file doesn't exist
-if not os.path.exists(csv_file_path):
-    with open(csv_file_path, mode='w', newline='', encoding='utf-8') as file:
+if not os.path.exists(output_file):
+    with open(output_file, mode='w', newline='', encoding='utf-8') as file:
         writer = csv.writer(file)
         writer.writerow(['Mobile Number', 'Operator', 'Circle', 'Date', 'Time'])  # Write headers
 
@@ -53,11 +54,11 @@ for mobile_number in mobile_numbers:
 
     # Open Paytm recharge page
     driver.get('https://paytm.com/recharge')
-    time.sleep(2)  # Add a small delay to ensure the page loads completely
+    time.sleep(3)  # Add a small delay to ensure the page loads completely
 
     try:
         # Wait for the Mobile Number input field to be present
-        mobile_number_input = WebDriverWait(driver, 10).until(
+        mobile_number_input = WebDriverWait(driver, 20).until(
             EC.presence_of_element_located(
                 (By.XPATH, "//*[@id='app']/div/div[4]/div[1]/div/div/div[2]/div[2]/ul/li[1]/div[1]/div/input"))
         )
@@ -65,13 +66,16 @@ for mobile_number in mobile_numbers:
         mobile_number_input.send_keys(str(mobile_number))
         mobile_number_input.send_keys(Keys.RETURN)
 
+        
+        time.sleep(3)  # Delay added here to slow down the extraction process
+
         # Wait for operator and circle details to be visible using the provided XPaths
-        operator = WebDriverWait(driver, 20).until(
+        operator = WebDriverWait(driver, 30).until(
             EC.visibility_of_element_located(
                 (By.XPATH, "//*[@id='app']/div/div[4]/div[1]/div[1]/div/div/div[2]/ul/li[2]/div[1]/div/input"))
         ).get_attribute('value') or 'N/A'  # Get the value or default to 'N/A'
 
-        circle = WebDriverWait(driver, 20).until(
+        circle = WebDriverWait(driver, 30).until(
             EC.visibility_of_element_located(
                 (By.XPATH, "//*[@id='app']/div/div[4]/div[1]/div[1]/div/div/div[2]/ul/li[3]/div[1]/div/input"))
         ).get_attribute('value') or 'N/A'  # Get the value or default to 'N/A'
@@ -89,11 +93,11 @@ for mobile_number in mobile_numbers:
     scraping_time = current_datetime.strftime('%H:%M:%S')  # Extract time
 
     # Append the data to the CSV file
-    with open(csv_file_path, mode='a', newline='', encoding='utf-8') as file:
+    with open(output_file, mode='a', newline='', encoding='utf-8') as file:
         writer = csv.writer(file)
         writer.writerow([mobile_number, operator, circle, scraping_date, scraping_time])  # Append data
 
-    print(f"Data for {mobile_number} saved to {csv_file_path}")
+    print(f"Data for {mobile_number} saved to {output_file}")
 
 # Close the browser
 driver.quit()
